@@ -2,7 +2,7 @@ import ffmpeg
 import numpy as np
 
 
-def load_with_ffmpeg(file_name, sample_rate):
+def load_with_ffmpeg(file_name, sample_rate=16_000):
     """
     It loads a file using ffmpeg, and returns the data as a numpy array
 
@@ -32,6 +32,14 @@ def save_fragment_with_ffmpeg(file_name, start, end):
         "./" + "fragment_" + name[-1]).run(capture_stdout=True, overwrite_output=True)
 
 
+def load_fragment_with_ffmpeg_kwargs(kwargs):
+    file_name = kwargs["file_name"]
+    start = kwargs["start"]
+    end = kwargs["end"]
+    kwargs["progress_callback"].emit(1)
+    return load_fragment_with_ffmpeg(file_name, start, end)
+
+
 def load_fragment_with_ffmpeg(file_name, start, end, sample_rate=16_000):
     """
     It loads a fragment of a sound file, resamples it to a given sample rate, and returns the fragment as a numpy array
@@ -47,8 +55,6 @@ def load_fragment_with_ffmpeg(file_name, start, end, sample_rate=16_000):
         .output('pipe:', loglevel=0, format='s16le', acodec='pcm_s16le', ac=1, ar=str(sample_rate)) \
         .run(capture_stdout=True)
     return np.frombuffer(audio_ch0[0], np.int16)
-
-
 
 
 def load_waw(input, start=0, stop=None):

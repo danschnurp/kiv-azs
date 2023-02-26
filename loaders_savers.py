@@ -33,9 +33,14 @@ def save_fragment_with_ffmpeg(file_name, start, end):
 
 
 def load_fragment_with_ffmpeg_kwargs(kwargs):
+    """
+    It takes a dictionary of keyword arguments, and returns a fragment of an audio
+    :param kwargs: a dictionary of keyword arguments to pass to ffmpeg
+    """
     file_name = kwargs["file_name"]
     start = kwargs["start"]
     end = kwargs["end"]
+    # Emitting a signal to the gui with code "1".
     kwargs["progress_callback"].emit(1)
     return load_fragment_with_ffmpeg(file_name, start, end)
 

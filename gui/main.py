@@ -16,10 +16,12 @@ from loaders_savers import load_fragment_with_ffmpeg_kwargs
 from ui_audio_cutter import Ui_MainWindow
 
 
+# The MainWindow class inherits from the QtWidgets.QMainWindow class and the Ui_MainWindow class.
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # A variable that is used to store the fragment signal.
         self.fragment_signal = None
         self.err = QErrorMessage()
         self.player = QProcess()
@@ -30,14 +32,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.line_edit_start_fragment.setText(str(0))
         # It sets the text of the line edit to the string "10".
         self.line_edit_end_fragment.setText(str(10))
-        self.pushButton_open_file.clicked.connect(self.get_file)
-        self.push_button_view_fragement.clicked.connect(self.show_fragment_signal)
+        self.pushButton_open_file.pressed.connect(self.get_file)
+        self.push_button_view_fragement.pressed.connect(self.show_fragment_signal)
         # A variable that is used to store the current signal that is being shown.
         self.showing_signal = None
         self.progressBar.hide()
-        self.pushButton_play_fragment.clicked.connect(self.play)
-        self.pushButton_stop_fragment.clicked.connect(self.stop)
-        self.pushButton_mf_analysis.clicked.connect(self.perform_male_female_analysis)
+        self.pushButton_play_fragment.pressed.connect(self.play)
+        self.pushButton_stop_fragment.pressed.connect(self.stop)
+        self.pushButton_mf_analysis.pressed.connect(self.perform_male_female_analysis)
+        # Used to store the previous fragment that was loaded.
         self.previous_fragment = {"file_name": "","start": -1,"end": -1}
 
 
@@ -46,7 +49,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         It returns the file name of the file that is being read.
         """
         f_name, _ = QFileDialog.getOpenFileName(self, 'Open file',
-                                                '../', "Sound files (*.mp3)")
+                                                '../', "Sound files (*)")
+        # It sets the text of the line edit
         self.text_input_path.setText(f_name)
         self.load_fragment()
 
@@ -55,25 +59,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         > This function loads a fragment of a signal from a file
         """
 
+        # It checks if the text input path is empty. If it is empty, it shows an error message.
         if len(self.text_input_path.text()) == 0:
             self.err.showMessage("Empty path to audio file...")
             return
+        # It checks if the start of the fragment is less than 0 or if the start of
+        # the fragment is greater than the end of the fragment. If it is, it shows an error message.
         if int(self.line_edit_start_fragment.text()) < 0 or \
                 int(self.line_edit_start_fragment.text()) > int(self.line_edit_end_fragment.text()):
             self.err.showMessage("Wrong start or end of fragment!!!")
             return
 
+        # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
         if self.fragment_signal is not None and self.previous_fragment["file_name"] == self.text_input_path.text() and \
-            self.previous_fragment["start"] == int(self.line_edit_start_fragment.text()) and \
-            self.previous_fragment["end"] == int(self.line_edit_end_fragment.text()):
+           self.previous_fragment["start"] == int(self.line_edit_start_fragment.text()) and \
+           self.previous_fragment["end"] == int(self.line_edit_end_fragment.text()):
             return
+        # Used to store the previous fragment that was loaded.
         self.previous_fragment = {"file_name": self.text_input_path.text(),
                                                                   "start": int(self.line_edit_start_fragment.text()),
                                                                   "end": int(self.line_edit_end_fragment.text())
                                                                   }
 
         # Pass the function to execute
-        worker = Worker(load_fragment_with_ffmpeg_kwargs, kwargs=self.previous_fragment)  # Any other args, kwargs are passed to the run function
+        worker = Worker(load_fragment_with_ffmpeg_kwargs, kwargs=self.previous_fragment)
+        # Connecting the signals to the functions.
         worker.signals.result.connect(self.set_fragment_signal)
         worker.signals.finished.connect(self.thread_complete)
         worker.signals.progress.connect(self.progress_fn)
@@ -81,14 +91,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Execute
         self.threadpool.start(worker)
 
-    def progress_fn(self, s):
-        if s == 1:
+    def progress_fn(self, signal_code):
+        """
+        It prints the progress of the current operation
+        :param signal_code: The current state of the process
+        """
+        if signal_code == 1:
             self.statusbar.showMessage("Fragment text loading!")
 
-    def set_fragment_signal(self, s):
-        self.fragment_signal = s
+    def set_fragment_signal(self, result):
+        """
+        setter
+        :param result: The result of the fragment
+        """
+        self.fragment_signal = result
 
     def thread_complete(self):
+        """
+        The function is called when the thread is complete
+        """
         self.statusbar.showMessage("Fragment text loaded...")
 
     def show_fragment_signal(self):
@@ -117,6 +138,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.player.start(sounddevice.play(self.fragment_signal, float(sample_rate)))
 
     def stop(self):
+        # Used to stop the sound.
         self.player.start(sounddevice.play(np.zeros(5), float(16_000.)))
 
     def perform_male_female_analysis(self):

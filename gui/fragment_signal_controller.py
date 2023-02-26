@@ -10,7 +10,9 @@ from matplotlib.backends.backend_qtagg import (
 from matplotlib.figure import Figure
 
 
+# This class is a controller for a fragment signal
 class FragmentSignalController(QtWidgets.QWidget):
+
     def __init__(self, input_data, offset):
         super().__init__()
         self._main = QtWidgets.QWidget()

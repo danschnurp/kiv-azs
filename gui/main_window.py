@@ -2,8 +2,6 @@
 #  author: Daniel Schnurpfeil
 #
 
-import sys
-
 import numpy as np
 import sounddevice
 from PySide6 import QtWidgets
@@ -11,9 +9,9 @@ from PySide6.QtCore import QProcess, QThreadPool
 from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
 from gui.fragment_signal_controller import FragmentSignalController
+from gui.ui_audio_cutter import Ui_MainWindow
 from gui.worker import Worker
 from utils_and_io.loaders_savers import load_fragment_with_ffmpeg_kwargs
-from gui.ui_audio_cutter import Ui_MainWindow
 
 
 # The MainWindow class inherits from the QtWidgets.QMainWindow class and the Ui_MainWindow class.

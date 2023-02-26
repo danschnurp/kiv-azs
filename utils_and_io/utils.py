@@ -1,7 +1,10 @@
+import os
 import time
 
 import ffmpeg
 import numpy as np
+
+from utils_and_io.loaders_savers import load_with_ffmpeg
 
 
 def time_to_sec(time: str):
@@ -102,3 +105,21 @@ def add_to_stats_dictionary(stats_dict, key, value):
     else:
         stats_dict[key].append(value)
     return stats_dict
+
+
+def remove_bad_audios(path_to_dir):
+    """
+    removes audio with noise at the end 0.5 sec
+    """
+    c = 0
+    for i in os.listdir(path_to_dir):
+        signal = load_with_ffmpeg(path_to_dir + "/" + i)
+
+        audio_input = signal[-8_000:]
+        audio_input = audio_input[audio_input < 1_000]
+        audio_input = audio_input[audio_input > -1_000]
+
+        if len(audio_input) < 4_000:
+            os.remove(path_to_dir + "/" + i)
+            c += 1
+    print(c)

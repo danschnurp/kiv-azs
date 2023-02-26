@@ -1,3 +1,7 @@
+#  date: 26. 02. 2023
+#  author: Daniel Schnurpfeil
+#
+
 import sys
 
 from PySide6 import QtWidgets

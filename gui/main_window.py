@@ -12,8 +12,8 @@ from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
 from gui.fragment_signal_controller import FragmentSignalController
 from gui.worker import Worker
-from loaders_savers import load_fragment_with_ffmpeg_kwargs
-from ui_audio_cutter import Ui_MainWindow
+from utils_and_io.loaders_savers import load_fragment_with_ffmpeg_kwargs
+from gui.ui_audio_cutter import Ui_MainWindow
 
 
 # The MainWindow class inherits from the QtWidgets.QMainWindow class and the Ui_MainWindow class.
@@ -149,12 +149,3 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # find_fragments_fft(signal_input=signal,
         #                    fragment_signal=self.fragment_signal)
 
-
-if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
-    window.setWindowTitle("AUdio segments analyzer")
-    window.show()
-    window.activateWindow()
-    window.raise_()
-    app.exec()

@@ -2,7 +2,7 @@ import time
 
 import numpy as np
 
-from utils import add_to_stats_dictionary, show_few_bests
+from utils_and_io.utils import add_to_stats_dictionary, show_few_bests
 
 
 class Frame(object):

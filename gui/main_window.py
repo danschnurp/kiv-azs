@@ -1,6 +1,7 @@
 #  date: 30. 01. 2023
 #  author: Daniel Schnurpfeil
 #
+import time
 
 import numpy as np
 import sounddevice
@@ -8,7 +9,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QProcess, QThreadPool
 from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
-from brain.filters import find_fragments_fft, find_fragments_fft_kwargs
+from brain.filters import find_fragments_fft_kwargs
 from gui.fragment_signal_controller import FragmentSignalController
 from gui.ui_audio_cutter import Ui_MainWindow
 from gui.worker import Worker
@@ -194,10 +195,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Execute
         self.threadpool.start(worker)
 
-    def progress_fn_analysis(self, signal_code, data):
+    def progress_fn_analysis(self, signal_code):
 
         if signal_code == 1:
             self.text_result_paths.clear()
             self.text_result_paths.appendPlainText("Performing analysis...\n")
-        if signal_code == 2:
-            self.text_result_paths.appendPlainText(str(data) + "\n")
+        else:
+            self.text_result_paths.appendPlainText(time.strftime('%H:%M:%S', time.gmtime(signal_code)) + "\n")

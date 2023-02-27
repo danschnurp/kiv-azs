@@ -10,7 +10,7 @@ from numpy.fft import rfft
 from scipy.signal.windows import gaussian
 
 from brain.vad import find_non_speech_parts
-from utils_and_io.vizualize import show_signal, show_stats
+from utils_and_io.vizualize import show_stats
 
 
 def find_fragments_fft_kwargs(kwargs):
@@ -56,11 +56,10 @@ def find_fragments_fft(signal_input: np.ndarray,
             diff_freq = np.max(np.fft.fft(fragment_signal * audio_input))
             # Checking if the difference between the two signals is defined difference.
             if diff_freq < max_difference:
-                progress_callback.emit(2,
-                                       time.strftime('%H:%M:%S', time.gmtime(i / sample_rate))
+                progress_callback.emit(
+                    i / sample_rate
                                        )
-    #             todo emit takes only one int
-    progress_callback.emit(2, "signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
+    progress_callback.emit(str("signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1))))
 
 
 def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, sample_rate: int) -> list:

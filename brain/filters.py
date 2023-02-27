@@ -14,6 +14,11 @@ from utils_and_io.vizualize import show_stats
 
 
 def find_fragments_fft_kwargs(kwargs):
+    """
+    Finds the start and end times of a fragment in a signal using the Fast Fourier Transform
+
+    :param kwargs: a dictionary of keyword arguments
+    """
     signal_input = kwargs["signal_input"]
     fragment_signal = kwargs["fragment_signal"]
     progress_callback = kwargs["progress_callback"]

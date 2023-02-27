@@ -91,48 +91,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Execute
         self.threadpool.start(worker)
 
-    def progress_fn(self, signal_code):
-        """
-        It prints the progress of the current operation
-        :param signal_code: The current state of the process
-        """
-        if signal_code == 1:
-            self.statusbar.showMessage("Fragment signal loading!")
-
-    def progress_fn_full(self, signal_code):
-        """
-        It prints the progress of the current operation
-        :param signal_code: The current state of the process
-        """
-        if signal_code == 1:
-            self.statusbar.showMessage("Full signal loading!")
-
-    def set_fragment_signal(self, result):
-        """
-        setter
-        :param result: The result of the fragment
-        """
-        self.fragment_signal = result
-
-    def set_full_signal(self, result):
-        """
-        setter
-        :param result: The result of the fragment
-        """
-        self.full_signal = result
-
-    def analysis_done(self):
-        """
-        This function is called when the analysis is done
-        """
-        self.text_result_paths.appendPlainText("Analysis done!")
-
-    def thread_complete(self):
-        """
-        The function is called when the thread is complete
-        """
-        self.statusbar.showMessage("Signal loaded...")
-
     def show_fragment_signal(self):
         """
         It shows the fragment signal
@@ -181,7 +139,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.threadpool.start(worker)
 
     def perform_male_female_analysis(self):
-
+        """
+        performs male/female voice analysis with fft
+        """
         self.load_full_signal()
         if self.full_signal is None:
             self.err.showMessage("Input audio signal is not loaded yet.")
@@ -195,8 +155,52 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Execute
         self.threadpool.start(worker)
 
-    def progress_fn_analysis(self, signal_code):
+    def progress_fn(self, signal_code):
+        """
+        It prints the progress of the current operation
+        :param signal_code: The current state of the process
+        """
+        if signal_code == 1:
+            self.statusbar.showMessage("Fragment signal loading!")
 
+    def progress_fn_full(self, signal_code):
+        """
+        It prints the progress of the current operation
+        :param signal_code: The current state of the process
+        """
+        if signal_code == 1:
+            self.statusbar.showMessage("Full signal loading!")
+
+    def set_fragment_signal(self, result):
+        """
+        setter
+        :param result: The result of the fragment
+        """
+        self.fragment_signal = result
+
+    def set_full_signal(self, result):
+        """
+        setter
+        :param result: The result of the fragment
+        """
+        self.full_signal = result
+
+    def analysis_done(self):
+        """
+        This function is called when the analysis is done
+        """
+        self.text_result_paths.appendPlainText("Analysis done!")
+
+    def thread_complete(self):
+        """
+        The function is called when the thread is complete
+        """
+        self.statusbar.showMessage("Signal loaded...")
+
+    def progress_fn_analysis(self, signal_code):
+        """
+        The function is called by the analysis thread and it updates the GUI with the progress of the analysis
+        """
         if signal_code == 1:
             self.text_result_paths.clear()
             self.text_result_paths.appendPlainText("Performing analysis...\n")

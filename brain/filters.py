@@ -9,16 +9,25 @@ import scipy.signal as sg
 from numpy.fft import rfft
 from scipy.signal.windows import gaussian
 
-from vad import find_non_speech_parts
+from brain.vad import find_non_speech_parts
 from utils_and_io.vizualize import show_signal, show_stats
+
+
+def find_fragments_fft_kwargs(kwargs):
+    signal_input = kwargs["signal_input"]
+    fragment_signal = kwargs["fragment_signal"]
+    progress_callback = kwargs["progress_callback"]
+    kwargs["progress_callback"].emit(1)
+    find_fragments_fft(signal_input=signal_input, fragment_signal=fragment_signal, progress_callback=progress_callback)
 
 
 def find_fragments_fft(signal_input: np.ndarray,
                        fragment_signal: np.ndarray,
                        sample_rate: int,
                        window=gaussian(1_000, std=100),
-                       max_difference=0.0
-                       ) -> tuple:
+                       max_difference=0.0,
+                       progress_callback=None
+                       ):
     """
     > Finds the start and end times of a fragment in a signal using the Fast Fourier Transform
 
@@ -32,15 +41,12 @@ def find_fragments_fft(signal_input: np.ndarray,
     :param window: the window function to use
     :param max_difference: the maximum difference between the fragment and the signal
     """
+    if progress_callback is None:
+        progress_callback = print
     t1 = time.time()
     iter_step = len(fragment_signal)
     # Convolving the fragmented signal with a window.
     fragment_signal = sg.convolve(fragment_signal, window)
-    # Showing the signal in a graph.
-    show_signal(fragment_signal, sample_rate)
-    exit(0)
-    results = []
-    stats = []
     # Iterating over the signal in steps of `iter_step` samples.
     for i in range(0, len(signal_input), iter_step):
         # Convolving the signal with a window.
@@ -48,15 +54,12 @@ def find_fragments_fft(signal_input: np.ndarray,
         if len(audio_input) == len(fragment_signal):
             # Taking the FFT of the product of the two signals, and then taking the maximum value of the FFT.
             diff_freq = np.max(np.fft.fft(fragment_signal * audio_input))
-            stats.append(diff_freq)
             # Checking if the difference between the two signals is defined difference.
-            if diff_freq > max_difference:
-                results.append(time.strftime('%H:%M:%S', time.gmtime(i / sample_rate)))
-                print(
-                    time.strftime('%H:%M:%S', time.gmtime(i / sample_rate))
-                )
-    print("signal processed in:", time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
-    return results, stats
+            if diff_freq < max_difference:
+                progress_callback.emit(2,
+                                       time.strftime('%H:%M:%S', time.gmtime(i / sample_rate))
+                                       )
+    progress_callback.emit(2, "signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
 
 
 def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, sample_rate: int) -> list:

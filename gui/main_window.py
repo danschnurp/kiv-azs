@@ -8,10 +8,11 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QProcess, QThreadPool
 from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
+from brain.filters import find_fragments_fft, find_fragments_fft_kwargs
 from gui.fragment_signal_controller import FragmentSignalController
 from gui.ui_audio_cutter import Ui_MainWindow
 from gui.worker import Worker
-from utils_and_io.loaders_savers import load_fragment_with_ffmpeg_kwargs
+from utils_and_io.loaders_savers import load_fragment_with_ffmpeg_kwargs, load_full_with_ffmpeg_kwargs
 
 
 # The MainWindow class inherits from the QtWidgets.QMainWindow class and the Ui_MainWindow class.
@@ -21,6 +22,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         super().__init__(*args, **kwargs)
         # A variable that is used to store the fragment signal.
         self.fragment_signal = None
+        self.previous_full_signal = None
+        self.full_signal = None
         self.err = QErrorMessage()
         self.player = QProcess()
         self.threadpool = QThreadPool()
@@ -39,8 +42,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_stop_fragment.pressed.connect(self.stop)
         self.pushButton_mf_analysis.pressed.connect(self.perform_male_female_analysis)
         # Used to store the previous fragment that was loaded.
-        self.previous_fragment = {"file_name": "","start": -1,"end": -1}
-
+        self.previous_fragment = {"file_name": "", "start": -1, "end": -1}
 
     def get_file(self):
         """
@@ -70,14 +72,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
         if self.fragment_signal is not None and self.previous_fragment["file_name"] == self.text_input_path.text() and \
-           self.previous_fragment["start"] == int(self.line_edit_start_fragment.text()) and \
-           self.previous_fragment["end"] == int(self.line_edit_end_fragment.text()):
+                self.previous_fragment["start"] == int(self.line_edit_start_fragment.text()) and \
+                self.previous_fragment["end"] == int(self.line_edit_end_fragment.text()):
             return
         # Used to store the previous fragment that was loaded.
         self.previous_fragment = {"file_name": self.text_input_path.text(),
-                                                                  "start": int(self.line_edit_start_fragment.text()),
-                                                                  "end": int(self.line_edit_end_fragment.text())
-                                                                  }
+                                  "start": int(self.line_edit_start_fragment.text()),
+                                  "end": int(self.line_edit_end_fragment.text())
+                                  }
 
         # Pass the function to execute
         worker = Worker(load_fragment_with_ffmpeg_kwargs, kwargs=self.previous_fragment)
@@ -95,7 +97,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param signal_code: The current state of the process
         """
         if signal_code == 1:
-            self.statusbar.showMessage("Fragment text loading!")
+            self.statusbar.showMessage("Fragment signal loading!")
+
+    def progress_fn_full(self, signal_code):
+        """
+        It prints the progress of the current operation
+        :param signal_code: The current state of the process
+        """
+        if signal_code == 1:
+            self.statusbar.showMessage("Full signal loading!")
 
     def set_fragment_signal(self, result):
         """
@@ -104,11 +114,24 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.fragment_signal = result
 
+    def set_full_signal(self, result):
+        """
+        setter
+        :param result: The result of the fragment
+        """
+        self.full_signal = result
+
+    def analysis_done(self):
+        """
+        This function is called when the analysis is done
+        """
+        self.text_result_paths.appendPlainText("Analysis done!")
+
     def thread_complete(self):
         """
         The function is called when the thread is complete
         """
-        self.statusbar.showMessage("Fragment text loaded...")
+        self.statusbar.showMessage("Signal loaded...")
 
     def show_fragment_signal(self):
         """
@@ -140,10 +163,32 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.player.start(sounddevice.play(np.zeros(5), float(16_000.)))
 
     def perform_male_female_analysis(self):
-        self.text_result_paths.appendPlainText("Loading full signal...")
 
-        # signal
-        self.text_result_paths.appendPlainText("Performing analysis...")
-        # find_fragments_fft(signal_input=signal,
-        #                    fragment_signal=self.fragment_signal)
+        self.load_fragment()
 
+        # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
+        if self.full_signal is not None and self.previous_full_signal["file_name"] == self.text_input_path.text():
+            return
+        # Used to store the previous fragment that was loaded.
+        self.previous_full_signal = {"file_name": self.text_input_path.text()
+                                     }
+        # Pass the function to execute
+        worker = Worker(load_full_with_ffmpeg_kwargs, kwargs=self.previous_full_signal)
+        # Connecting the signals to the functions. todo here bug
+        worker.signals.result.connect(self.set_full_signal)
+        worker.signals.finished.connect(self.thread_complete)
+        worker.signals.progress.connect(self.progress_fn_full)
+
+        # # signal
+        # worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
+        #                                                    "fragment_signal": self.fragment_signal})
+        # worker.signals.finished.connect(self.analysis_done)
+        # worker.signals.progress.connect(self.progress_fn_analysis)
+
+    def progress_fn_analysis(self, signal_code, data):
+
+        if signal_code == 1:
+            self.text_result_paths.clear()
+            self.text_result_paths.appendPlainText("Performing analysis...\n")
+        if signal_code == 2:
+            self.text_result_paths.appendPlainText(str(data) + "\n")

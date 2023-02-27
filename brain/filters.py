@@ -6,6 +6,7 @@ import time
 
 import numpy as np
 import scipy.signal as sg
+import webrtcvad
 from numpy.fft import rfft
 from scipy.signal.windows import gaussian
 
@@ -83,7 +84,7 @@ def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, s
     return results
 
 
-def process_with_vad(vad, signal=None, fragment_signal=None, sample_rate=None):
+def process_with_vad(signal=None, fragment_signal=None, sample_rate=None,vad=webrtcvad.Vad()):
     """
     It takes a VAD object, a signal, a fragment of the signal, and a sample rate, and returns a list of the
      fragments of the signal that are considered to be speech.

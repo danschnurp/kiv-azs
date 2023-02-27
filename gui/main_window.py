@@ -181,9 +181,11 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def set_full_signal(self, result):
         """
         setter
-        :param result: The result of the fragment
+        :param result: The result async task
         """
-        self.full_signal = result
+        self.full_signal = result[0]
+        self.text_result_paths.appendPlainText(result[1])
+        self.text_result_paths.appendPlainText(str("signal length is " + time.strftime('%H:%M:%S', time.gmtime(int(len(result[0]) / result[2])))))
 
     def analysis_done(self):
         """

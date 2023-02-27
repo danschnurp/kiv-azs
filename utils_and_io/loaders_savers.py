@@ -1,5 +1,25 @@
+import time
+
 import ffmpeg
 import numpy as np
+
+
+def load_with_ffmpeg_with_stats(file_name, sample_rate=16_000):
+    """
+    It loads a file using ffmpeg, and returns the data as a numpy array
+
+    :param file_name: The path to the audio file
+    :param sample_rate: The number of samples per second of audio
+    """
+    t1 = time.time()
+    audio_ch0 = ffmpeg.input(file_name)['a:0'] \
+        .filter('channelsplit', channel_layout='mono', channels='FC') \
+        .output('pipe:', loglevel=0, format='s16le', acodec='pcm_s16le', ac=1, ar=str(sample_rate)) \
+        .run(capture_stdout=True)
+
+    return np.frombuffer(audio_ch0[0], np.int16), \
+           str("signal loaded in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1))), \
+           sample_rate
 
 
 def load_with_ffmpeg(file_name, sample_rate=16_000):
@@ -53,7 +73,7 @@ def load_full_with_ffmpeg_kwargs(kwargs):
     file_name = kwargs["file_name"]
     # Emitting a signal to the gui with code "1".
     kwargs["progress_callback"].emit(1)
-    return load_with_ffmpeg(file_name)
+    return load_with_ffmpeg_with_stats(file_name)
 
 
 def load_fragment_with_ffmpeg(file_name, start, end, sample_rate=16_000):

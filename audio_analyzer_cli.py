@@ -39,7 +39,7 @@ def main(args):
     show_stats(fragment_stats)
 
     # # Using the VAD to find the non-speech parts of the signal.
-    process_with_vad(webrtcvad.Vad(), signal, fragment_signal, sample_rate)
+    # process_with_vad(signal, fragment_signal, sample_rate)
 
     # translate_fragments(times, remove_duplicates, signal, sample_rate)
 

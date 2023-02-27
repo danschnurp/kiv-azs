@@ -23,7 +23,7 @@ def find_fragments_fft_kwargs(kwargs):
 
 def find_fragments_fft(signal_input: np.ndarray,
                        fragment_signal: np.ndarray,
-                       sample_rate: int,
+                       sample_rate=16_000,
                        window=gaussian(1_000, std=100),
                        max_difference=0.0,
                        progress_callback=None
@@ -59,6 +59,7 @@ def find_fragments_fft(signal_input: np.ndarray,
                 progress_callback.emit(2,
                                        time.strftime('%H:%M:%S', time.gmtime(i / sample_rate))
                                        )
+    #             todo emit takes only one int
     progress_callback.emit(2, "signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
 
 

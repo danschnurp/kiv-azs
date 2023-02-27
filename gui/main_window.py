@@ -87,7 +87,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         worker.signals.result.connect(self.set_fragment_signal)
         worker.signals.finished.connect(self.thread_complete)
         worker.signals.progress.connect(self.progress_fn)
-
         # Execute
         self.threadpool.start(worker)
 
@@ -138,6 +137,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         It shows the fragment signal
         """
         self.load_fragment()
+        self.load_full_signal()
         if self.fragment_signal is not None:
             signal_view = FragmentSignalController(self.fragment_signal, int(self.line_edit_start_fragment.text()))
 
@@ -162,10 +162,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         # Used to stop the sound.
         self.player.start(sounddevice.play(np.zeros(5), float(16_000.)))
 
-    def perform_male_female_analysis(self):
-
-        self.load_fragment()
-
+    def load_full_signal(self):
         # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
         if self.full_signal is not None and self.previous_full_signal["file_name"] == self.text_input_path.text():
             return
@@ -174,16 +171,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                                      }
         # Pass the function to execute
         worker = Worker(load_full_with_ffmpeg_kwargs, kwargs=self.previous_full_signal)
-        # Connecting the signals to the functions. todo here bug
+        # Connecting the signals to the functions.
         worker.signals.result.connect(self.set_full_signal)
         worker.signals.finished.connect(self.thread_complete)
         worker.signals.progress.connect(self.progress_fn_full)
 
-        # # signal
-        # worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
-        #                                                    "fragment_signal": self.fragment_signal})
-        # worker.signals.finished.connect(self.analysis_done)
-        # worker.signals.progress.connect(self.progress_fn_analysis)
+        # Execute
+        self.threadpool.start(worker)
+
+    def perform_male_female_analysis(self):
+
+        self.load_full_signal()
+        if self.full_signal is None:
+            self.err.showMessage("Input audio signal is not loaded yet.")
+            return
+
+        worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
+                                                           "fragment_signal": self.fragment_signal})
+        worker.signals.finished.connect(self.analysis_done)
+        worker.signals.progress.connect(self.progress_fn_analysis)
+
+        # Execute
+        self.threadpool.start(worker)
 
     def progress_fn_analysis(self, signal_code, data):
 

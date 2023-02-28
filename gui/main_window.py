@@ -25,6 +25,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.fragment_signal = None
         self.previous_full_signal = None
         self.full_signal = None
+        self.full_signal_loader_runs = False
+        self.analysis_runs = False
         self.err = QErrorMessage()
         self.player = QProcess()
         self.threadpool = QThreadPool()
@@ -66,20 +68,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
         # It checks if the start of the fragment is less than 0 or if the start of
         # the fragment is greater than the end of the fragment. If it is, it shows an error message.
-        if int(self.line_edit_start_fragment.text()) < 0 or \
-                int(self.line_edit_start_fragment.text()) > int(self.line_edit_end_fragment.text()):
+        if float(self.line_edit_start_fragment.text()) < 0 or \
+                float(self.line_edit_start_fragment.text()) > float(self.line_edit_end_fragment.text()):
             self.err.showMessage("Wrong start or end of fragment!!!")
             return
 
         # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
         if self.fragment_signal is not None and self.previous_fragment["file_name"] == self.text_input_path.text() and \
-                self.previous_fragment["start"] == int(self.line_edit_start_fragment.text()) and \
-                self.previous_fragment["end"] == int(self.line_edit_end_fragment.text()):
+                self.previous_fragment["start"] == float(self.line_edit_start_fragment.text()) and \
+                self.previous_fragment["end"] == float(self.line_edit_end_fragment.text()):
             return
         # Used to store the previous fragment that was loaded.
         self.previous_fragment = {"file_name": self.text_input_path.text(),
-                                  "start": int(self.line_edit_start_fragment.text()),
-                                  "end": int(self.line_edit_end_fragment.text())
+                                  "start": float(self.line_edit_start_fragment.text()),
+                                  "end": float(self.line_edit_end_fragment.text())
                                   }
 
         # Pass the function to execute
@@ -98,7 +100,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.load_fragment()
         self.load_full_signal()
         if self.fragment_signal is not None:
-            signal_view = FragmentSignalController(self.fragment_signal, int(self.line_edit_start_fragment.text()))
+            signal_view = FragmentSignalController(self.fragment_signal, float(self.line_edit_start_fragment.text()))
 
             if self.showing_signal is not None:
                 self.showing_signal.deleteLater()
@@ -122,6 +124,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.player.start(sounddevice.play(np.zeros(5), float(16_000.)))
 
     def load_full_signal(self):
+
+        if self.full_signal_loader_runs:
+            return
+
         # It checks if the fragment signal is not None and if the previous fragment is the same as the current fragment.
         if self.full_signal is not None and self.previous_full_signal["file_name"] == self.text_input_path.text():
             return
@@ -142,6 +148,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         performs male/female voice analysis with fft
         """
+
+        if self.analysis_runs:
+            return
+
         self.load_full_signal()
         if self.full_signal is None:
             self.err.showMessage("Input audio signal is not loaded yet.")
@@ -169,7 +179,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         :param signal_code: The current state of the process
         """
         if signal_code == 1:
-            self.statusbar.showMessage("Full signal loading!")
+            self.full_signal_loader_runs = True
+            self.text_result_paths.clear()
+            self.text_result_paths.appendPlainText("Full signal loading!")
 
     def set_fragment_signal(self, result):
         """
@@ -192,18 +204,21 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         This function is called when the analysis is done
         """
         self.text_result_paths.appendPlainText("Analysis done!")
+        self.analysis_runs = False
 
     def thread_complete(self):
         """
         The function is called when the thread is complete
         """
         self.statusbar.showMessage("Signal loaded...")
+        self.full_signal_loader_runs = False
 
     def progress_fn_analysis(self, signal_code):
         """
         The function is called by the analysis thread and it updates the GUI with the progress of the analysis
         """
         if signal_code == 1:
+            self.analysis_runs = True
             self.text_result_paths.clear()
             self.text_result_paths.appendPlainText("Performing analysis...\n")
         else:

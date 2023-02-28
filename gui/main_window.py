@@ -9,7 +9,7 @@ from PySide6 import QtWidgets
 from PySide6.QtCore import QProcess, QThreadPool
 from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
-from brain.filters import find_fragments_fft_kwargs
+from brain.filters import find_fragments_fft_kwargs, process_with_vad_kwargs
 from gui.fragment_signal_controller import FragmentSignalController
 from gui.ui_audio_cutter import Ui_MainWindow
 from gui.worker import Worker
@@ -44,6 +44,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.pushButton_play_fragment.pressed.connect(self.play)
         self.pushButton_stop_fragment.pressed.connect(self.stop)
         self.pushButton_mf_analysis.pressed.connect(self.perform_male_female_analysis)
+        self.pushButton_VAD.pressed.connect(self.perform_VAD_analysis)
         # Used to store the previous fragment that was loaded.
         self.previous_fragment = {"file_name": "", "start": -1, "end": -1}
 
@@ -148,6 +149,18 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         performs male/female voice analysis with fft
         """
+        self.perform_analysis()
+
+    def perform_VAD_analysis(self):
+        """
+        performs voice activation detection
+        """
+        self.perform_analysis(worker_method=process_with_vad_kwargs)
+
+    def perform_analysis(self, worker_method=find_fragments_fft_kwargs):
+        """
+        performs custom analysis
+        """
 
         if self.analysis_runs:
             return
@@ -157,8 +170,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.err.showMessage("Input audio signal is not loaded yet.")
             return
 
-        worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
-                                                           "fragment_signal": self.fragment_signal})
+        worker = Worker(worker_method, kwargs={"signal_input": self.full_signal,
+                                               "fragment_signal": self.fragment_signal})
         worker.signals.finished.connect(self.analysis_done)
         worker.signals.progress.connect(self.progress_fn_analysis)
 
@@ -197,7 +210,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         self.full_signal = result[0]
         self.text_result_paths.appendPlainText(result[1])
-        self.text_result_paths.appendPlainText(str("signal length is " + time.strftime('%H:%M:%S', time.gmtime(int(len(result[0]) / result[2])))))
+        self.text_result_paths.appendPlainText(
+            str("signal length is " + time.strftime('%H:%M:%S', time.gmtime(int(len(result[0]) / result[2])))))
 
     def analysis_done(self):
         """

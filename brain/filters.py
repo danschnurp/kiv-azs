@@ -11,7 +11,6 @@ from numpy.fft import rfft
 from scipy.signal.windows import gaussian
 
 from brain.vad import find_non_speech_parts
-from utils_and_io.vizualize import show_stats
 
 
 def find_fragments_fft_kwargs(kwargs):
@@ -64,7 +63,7 @@ def find_fragments_fft(signal_input: np.ndarray,
             if diff_freq < max_difference:
                 progress_callback.emit(
                     i / sample_rate
-                                       )
+                )
     progress_callback.emit(str("signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1))))
 
 
@@ -84,7 +83,21 @@ def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, s
     return results
 
 
-def process_with_vad(signal=None, fragment_signal=None, sample_rate=None,vad=webrtcvad.Vad()):
+def process_with_vad_kwargs(kwargs):
+    """
+    Finds the start and end times of a fragment in a signal using the Fast Fourier Transform
+
+    :param kwargs: a dictionary of keyword arguments
+    """
+    signal_input = kwargs["signal_input"]
+    fragment_signal = kwargs["fragment_signal"]
+    progress_callback = kwargs["progress_callback"]
+    kwargs["progress_callback"].emit(1)
+    process_with_vad(signal=signal_input, fragment_signal=fragment_signal, progress_callback=progress_callback)
+
+
+def process_with_vad(signal=None, fragment_signal=None, progress_callback=None,
+                     sample_rate=16_000, vad=webrtcvad.Vad()):
     """
     It takes a VAD object, a signal, a fragment of the signal, and a sample rate, and returns a list of the
      fragments of the signal that are considered to be speech.
@@ -94,10 +107,10 @@ def process_with_vad(signal=None, fragment_signal=None, sample_rate=None,vad=web
     :param fragment_signal: a numpy array of the audio signal
     :param sample_rate: The sample rate of the audio signal
     """
-    print("processing signal with VAD...")
-    t1 = time.time()
+
+    if progress_callback is None:
+        progress_callback = print
     vad_times, vad_stats, vad_stats2 = find_non_speech_parts(vad, signal, fragment_signal, sample_rate)
-    print("signal processed in:", time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
-    print(vad_times)
-    show_stats(vad_stats)
-    show_stats(vad_stats2)
+    [progress_callback.emit(i) for i in vad_times]
+    # show_stats(vad_stats)
+    # show_stats(vad_stats2)

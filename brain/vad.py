@@ -72,20 +72,23 @@ def find_non_speech_parts(vad, signal_input: np.ndarray, fragment_signal: np.nda
     :param sample_rate: the sample rate of the signal_input, defaults to 0 (optional)
     """
     iter_step = int(1 * sample_rate)
-    print("len(fragment_signal)", len(fragment_signal))
+    # print("len(fragment_signal)", len(fragment_signal))
     results = []
     stats = []
-    stats2 = []
+    stats_threshold = []
     stat_dict = {}
     # Iterating over the signal in steps of `iter_step` samples.
     for i in range(0, len(signal_input), iter_step):
-        # Convolving the signal with a gaussian window.
+        # Taking a chunk of the signal_input, and assigning it to audio_input.
         audio_input = signal_input[i:int(i + iter_step)]
         if len(audio_input) == len(fragment_signal):
+            # Appending the result of the `no_human_voice` function to the `stats` list.
             stats.append(no_human_voice(audio_input, sample_rate, vad))
+            # Adding the result of the `no_human_voice` function to the `stats` list.
             stat_dict = add_to_stats_dictionary(stat_dict, stats[-1], int(i / sample_rate))
-            if stats[-1] > 0.95:
-                stats2.append(stats[-1])
-                results.append(time.strftime('%H:%M:%S', time.gmtime(i / sample_rate)))
-    show_few_bests(stat_dict, 10)
-    return results, stats, stats2
+            # Checking if the last element in the `stats` list is greater than 0.95 of no human voice.
+            if stats[-1] > 0.75:
+                stats_threshold.append(stats[-1])
+                results.append(i / sample_rate)
+    # show_few_bests(stat_dict, 10)
+    return results, stats, stats_threshold

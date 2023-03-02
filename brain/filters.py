@@ -24,7 +24,8 @@ def find_fragments_fft_kwargs(kwargs):
     fragment_signal = kwargs["fragment_signal"]
     progress_callback = kwargs["progress_callback"]
     kwargs["progress_callback"].emit(1)
-    find_fragments_fft(signal_input=signal_input, fragment_signal=fragment_signal, progress_callback=progress_callback)
+    find_fragments_fft(signal_input=signal_input, fragment_signal=fragment_signal,
+                       progress_callback_emit=progress_callback.emit)
 
 
 def find_fragments_fft(signal_input: np.ndarray,
@@ -32,7 +33,7 @@ def find_fragments_fft(signal_input: np.ndarray,
                        sample_rate=16_000,
                        window=gaussian(1_000, std=100),
                        max_difference=0.0,
-                       progress_callback=None
+                       progress_callback_emit=None
                        ):
     """
     > Finds the start and end times of a fragment in a signal using the Fast Fourier Transform
@@ -47,8 +48,8 @@ def find_fragments_fft(signal_input: np.ndarray,
     :param window: the window function to use
     :param max_difference: the maximum difference between the fragment and the signal
     """
-    if progress_callback is None:
-        progress_callback = print
+    if progress_callback_emit is None:
+        progress_callback_emit = print
     t1 = time.time()
     iter_step = len(fragment_signal)
     # Convolving the fragmented signal with a window.
@@ -62,10 +63,11 @@ def find_fragments_fft(signal_input: np.ndarray,
             diff_freq = np.max(np.fft.fft(fragment_signal * audio_input))
             # Checking if the difference between the two signals is defined difference.
             if diff_freq < max_difference:
-                progress_callback.emit(
+                progress_callback_emit(
                     i / sample_rate
                                        )
-    progress_callback.emit(str("signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1))))
+    # todo bug does not return to gui
+    return str("signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
 
 
 def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, sample_rate: int) -> list:

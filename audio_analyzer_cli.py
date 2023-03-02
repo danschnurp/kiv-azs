@@ -4,7 +4,8 @@
 import webrtcvad
 import time
 
-from utils_and_io.loaders_savers import load_with_ffmpeg
+from brain.filters import find_fragments_fft
+from utils_and_io.loaders_savers import load_with_ffmpeg, load_fragment_with_ffmpeg
 from utils_and_io.vizualize import show_stats
 
 
@@ -19,7 +20,7 @@ def main(args):
     end = 2
 
     # Loading the fragment signal from the file specified by the `f_fragment` argument.
-    fragment_signal = load_with_ffmpeg(str(args.f_fragment), sample_rate)
+    fragment_signal = load_fragment_with_ffmpeg(file_name, start=start, end=end, sample_rate=sample_rate)
 
     # sounddevice.play(fragment_signal / sample_rate, sample_rate)
     # show_signal(fragment_signal, sample_rate)
@@ -48,14 +49,14 @@ def main(args):
     # print("translating potential locations of segments...")
     # translate_segments(potential_silence, step)
 
+
 if __name__ == '__main__':
-    from brain.filters import main, find_fragments_fft, process_with_vad
     import argparse
 
     parser = argparse.ArgumentParser(description='audio_cutter')
     parser.add_argument('-i', '--f_input',
                         help='path to input file...', required=True)
     parser.add_argument('-f', '--f_fragment',
-                        help='path to input file...', required=True)
+                        help='path to input file...')
     args = parser.parse_args()
     main(args)

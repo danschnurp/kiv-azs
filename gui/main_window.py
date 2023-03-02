@@ -159,6 +159,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
         worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
                                                            "fragment_signal": self.fragment_signal})
+        worker.signals.result.connect(self.show_stats)
         worker.signals.finished.connect(self.analysis_done)
         worker.signals.progress.connect(self.progress_fn_analysis)
 
@@ -223,3 +224,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.text_result_paths.appendPlainText("Performing analysis...\n")
         else:
             self.text_result_paths.appendPlainText(time.strftime('%H:%M:%S', time.gmtime(signal_code)) + "\n")
+
+    def show_stats(self, stats):
+        self.text_result_paths.appendPlainText(stats)

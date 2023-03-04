@@ -72,9 +72,9 @@
        </widget>
       </item>
       <item row="2" column="5">
-       <widget class="QPushButton" name="pushButton_SVM">
+       <widget class="QPushButton" name="pushButton_LDA">
         <property name="text">
-         <string>SVM</string>
+         <string>LDA</string>
         </property>
        </widget>
       </item>

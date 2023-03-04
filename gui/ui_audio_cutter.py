@@ -71,10 +71,10 @@ class Ui_MainWindow(object):
 
         self.gridLayout_5.addWidget(self.pushButton_mf_analysis, 4, 5, 1, 1)
 
-        self.pushButton_SVM = QPushButton(self.centralwidget)
-        self.pushButton_SVM.setObjectName(u"pushButton_SVM")
+        self.pushButton_LDA = QPushButton(self.centralwidget)
+        self.pushButton_LDA.setObjectName(u"pushButton_LDA")
 
-        self.gridLayout_5.addWidget(self.pushButton_SVM, 2, 5, 1, 1)
+        self.gridLayout_5.addWidget(self.pushButton_LDA, 2, 5, 1, 1)
 
         self.line_edit_start_fragment = QLineEdit(self.centralwidget)
         self.line_edit_start_fragment.setObjectName(u"line_edit_start_fragment")
@@ -164,7 +164,7 @@ class Ui_MainWindow(object):
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"Input Path:", None))
         self.label.setText(QCoreApplication.translate("MainWindow", u"sec", None))
         self.pushButton_mf_analysis.setText(QCoreApplication.translate("MainWindow", u"Male/Female Segments", None))
-        self.pushButton_SVM.setText(QCoreApplication.translate("MainWindow", u"SVM", None))
+        self.pushButton_LDA.setText(QCoreApplication.translate("MainWindow", u"LDA", None))
         self.pushButton_VAD.setText(QCoreApplication.translate("MainWindow", u"Voice Activation Detection", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"Analysis Starter Buttons", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"sec", None))

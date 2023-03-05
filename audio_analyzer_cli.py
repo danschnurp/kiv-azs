@@ -1,12 +1,10 @@
 #  date: 15. 01. 2023
 #  author: Daniel Schnurpfeil
 #
-import webrtcvad
 import time
 
 from brain.filters import find_fragments_fft
 from utils_and_io.loaders_savers import load_with_ffmpeg, load_fragment_with_ffmpeg
-from utils_and_io.vizualize import show_stats
 
 
 def main(args):
@@ -16,11 +14,9 @@ def main(args):
     t1 = time.time()
     # Converting the argument to a string.
     file_name = str(args.f_input)
-    start = 0
-    end = 2
 
     # Loading the fragment signal from the file specified by the `f_fragment` argument.
-    fragment_signal = load_fragment_with_ffmpeg(file_name, start=start, end=end, sample_rate=sample_rate)
+    fragment_signal = load_fragment_with_ffmpeg(file_name, start=args.start, end=args.end, sample_rate=sample_rate)
 
     # sounddevice.play(fragment_signal / sample_rate, sample_rate)
     # show_signal(fragment_signal, sample_rate)
@@ -36,8 +32,7 @@ def main(args):
 
     # Finding the fragments of the signal that are similar to the fragment_signal.
     print("processing signal with my filter...")
-    fragment_times, fragment_stats = find_fragments_fft(signal, fragment_signal, sample_rate)
-    show_stats(fragment_stats)
+    find_fragments_fft(signal, fragment_signal, sample_rate)
 
     # # Using the VAD to find the non-speech parts of the signal.
     # process_with_vad(signal, fragment_signal, sample_rate)
@@ -56,7 +51,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='audio_cutter')
     parser.add_argument('-i', '--f_input',
                         help='path to input file...', required=True)
-    parser.add_argument('-f', '--f_fragment',
-                        help='path to input file...')
+    parser.add_argument('-s', '--start', default=1, type=float,
+                        help='start of the fragment...')
+    parser.add_argument('-e', '--end', default=5, type=float,
+                        help='end of the fragment...')
+
     args = parser.parse_args()
     main(args)

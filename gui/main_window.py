@@ -7,7 +7,7 @@ import numpy as np
 import sounddevice
 from PySide6 import QtWidgets
 from PySide6.QtCore import QProcess, QThreadPool
-from PySide6.QtWidgets import QFileDialog, QErrorMessage, QMessageBox
+from PySide6.QtWidgets import QFileDialog, QErrorMessage
 
 from brain.filters import find_fragments_fft_kwargs, process_with_vad_kwargs
 from gui.fragment_signal_controller import FragmentSignalController
@@ -64,14 +64,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         > This function loads a fragment of a signal from a file
         """
 
-        # Checking if the analysis is running. If it is running, it shows a dialog box. If the user clicks
-        # yes, it stops the analysis. If the user clicks no, it returns.
+        # Checking if the analysis is running. If it is running, it shows a dialog box.
         if self.analysis_runs:
-            dialog = QMessageBox.question(self, "Warning","You are about to stop RUNNING analyis!")
-            if dialog == QMessageBox.Yes:
-                self.stop_analysis()
-            else:
-                return
+            self.err.showMessage("Analysis is running... If you need stop, restart app.")
+            return
 
         # It checks if the text input path is empty. If it is empty, it shows an error message.
         if len(self.text_input_path.text()) == 0:
@@ -181,8 +177,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         self.analysis_worker = Worker(find_fragments_fft_kwargs, kwargs={"signal_input": self.full_signal,
-                                                           "fragment_signal": self.fragment_signal})
-        self.analysis_worker.signals.result.connect(self.show_stats)
+                                                                         "fragment_signal": self.fragment_signal})
         self.analysis_worker.signals.finished.connect(self.analysis_done)
         self.analysis_worker.signals.progress.connect(self.progress_fn_analysis)
 
@@ -231,15 +226,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.text_result_paths.appendPlainText("Analysis done!")
         self.analysis_runs = False
 
-    def stop_analysis(self):
-        """
-        It stops the analysis.
-        """
-        self.full_signal_loader_runs = False
-        self.analysis_worker.quit()
-        self.text_result_paths.appendPlainText("Analysis stopped.")
-
-
     def thread_complete(self):
         """
         The function is called when the thread is complete
@@ -257,6 +243,3 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.text_result_paths.appendPlainText("Performing analysis...\n")
         else:
             self.text_result_paths.appendPlainText(time.strftime('%H:%M:%S', time.gmtime(signal_code)) + "\n")
-
-    def show_stats(self, stats):
-        self.text_result_paths.appendPlainText(stats)

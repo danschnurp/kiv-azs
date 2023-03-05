@@ -31,7 +31,7 @@ def find_fragments_fft(signal_input: np.ndarray,
                        fragment_signal: np.ndarray,
                        sample_rate=16_000,
                        window=gaussian(1_000, std=100),
-                       max_difference=0.0,
+                       max_difference=100.0,
                        progress_callback_emit=None
                        ):
     """
@@ -47,9 +47,6 @@ def find_fragments_fft(signal_input: np.ndarray,
     :param window: the window function to use
     :param max_difference: the maximum difference between the fragment and the signal
     """
-    if progress_callback_emit is None:
-        progress_callback_emit = print
-    t1 = time.time()
     iter_step = len(fragment_signal)
     # Convolving the fragmented signal with a window.
     fragment_signal = sg.convolve(fragment_signal, window)
@@ -62,11 +59,10 @@ def find_fragments_fft(signal_input: np.ndarray,
             diff_freq = np.max(np.fft.fft(fragment_signal * audio_input))
             # Checking if the difference between the two signals is defined difference.
             if diff_freq < max_difference:
-                progress_callback_emit(
-                    i / sample_rate
-                                       )
-    # todo bug does not return to gui
-    return str("signal processed in: " + time.strftime('%H:%M:%S', time.gmtime(time.time() - t1)))
+                if progress_callback_emit is None:
+                    print(time.strftime('%H:%M:%S', time.gmtime(i / sample_rate)))
+                else:
+                    progress_callback_emit(float(i / sample_rate))
 
 
 def find_fragments_corr(signal_input: np.ndarray, fragment_signal: np.ndarray, sample_rate: int) -> list:

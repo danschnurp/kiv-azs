@@ -1,6 +1,6 @@
 # Audio Segments Analyzer
 
-School project KIV/AZS subject
+School project of KIV/AZS subject
 
 Simple desktop application which allows user to match in audio input similar patterns based on pattern that user choose.
 It can be useful when you want to cut large audio file such as recorded speech or audiobook.
